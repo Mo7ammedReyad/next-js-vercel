@@ -1,10 +1,11 @@
+// middleware.js
 import { NextResponse } from 'next/server';
-import { verifyToken } from '@/lib/auth';
+import { verifyToken } from './lib/auth'; // <-- تم تعديل المسار هنا
 
 export function middleware(request) {
   const path = request.nextUrl.pathname;
   
-  // المسارات العامة
+  // المسارات العامة اللي مش محتاجة تسجيل دخول
   const publicPaths = ['/login', '/signup', '/api/login', '/api/signup'];
   const isPublicPath = publicPaths.includes(path);
   
@@ -14,19 +15,19 @@ export function middleware(request) {
   // التحقق من صحة التوكن
   const isValidToken = verifyToken(token);
   
-  // إذا كان المسار محمي والمستخدم غير مسجل دخوله
+  // لو المستخدم بيحاول يدخل صفحة خاصة وهو مش مسجل دخوله
   if (!isPublicPath && !isValidToken) {
     return NextResponse.redirect(new URL('/login', request.url));
   }
-  
-  // إذا كان المستخدم مسجل دخوله ويحاول الوصول لصفحات التسجيل
+
+  // لو المستخدم مسجل دخوله وبيحاول يدخل صفحة تسجيل الدخول أو التسجيل
   if (isPublicPath && isValidToken && !path.startsWith('/api')) {
     return NextResponse.redirect(new URL('/', request.url));
   }
-  
+
   return NextResponse.next();
 }
 
 export const config = {
-  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)']
+  matcher: ['/((?!_next/static|_next/image|favicon.ico).*)'],
 };
